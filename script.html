@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Emanuel Simões e Pedro Noleto">
+
+<title>Relatório de análise do IPCA a partir de outras variáveis econômicas</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="script_files/libs/clipboard/clipboard.min.js"></script>
+<script src="script_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="script_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="script_files/libs/quarto-html/popper.min.js"></script>
+<script src="script_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="script_files/libs/quarto-html/anchor.min.js"></script>
+<link href="script_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="script_files/libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="script_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="script_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="script_files/libs/bootstrap/bootstrap-bb462d781dde1847d9e3ccf7736099dd.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Relatório de análise do IPCA a partir de outras variáveis econômicas</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Emanuel Simões e Pedro Noleto </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introdução" class="level1">
+<h1>Introdução</h1>
+<p>Neste trabalho iremos através de diversos bancos de dados, analisar 288 observações referente a cada mês de 2002 a 2025. Referentes aos dados que mais afetam a variável resposta o IPCA (Índice nacional de preços ao consumidor). Para chegar as variáveis respostas, pensamos em diversas variáveis como o IGP (Índice geral de preços), IPA (Índice de preço no atacado), IPC (Índice de preço ao consumidor) e INCC (Índice nacional de custo da construção), por fim estes índices não foram utilizados por que medem a inflação por meio de outros parâmetros que poderiam afetar e atrapalhar a análise. Para que a manipulação dos dados fossem o mais natural o possível focamos em variáveis explicativas tanto quantitativas quanto qualitativas. Sendo as variáveis quantitativas aquelas que podem ser observadas por todo o período de tempo, referente ao total de observações, portanto de 2002 a 2025. Já as variáveis qualitativas são eventos que aconteceram e acontecem em momentos específicos, neste caso as eleições e a pandemia. Para determinar se o evento e quantitativo ou qualitativo, optamos por utilizar 1 para o período que ocorre determinados eventos e 0 para períodos que não ocorrem.</p>
+</section>
+<section id="introdução-aos-dados" class="level1">
+<h1>Introdução aos dados</h1>
+<p>Esta seção apresenta uma breve explicação, o período e a fonte de cada variável utilizada para as análises.</p>
+<p><strong>Variável resposta:</strong></p>
+<ul>
+<li><strong>IPCA (Índice Nacional de Preços ao Consumidor Amplo):</strong> mede a inflação oficial do Brasil a partir da variação de preços ao consumidor. Os dados são a variação percentual mensal do IPCA, de janeiro de 1980 a dezembro de 2025. Dados coletados de <a href="https://sidra.ibge.gov.br/pesquisa/snipc/ipca/tabelas">sidra.ibge.gov.br/pesquisa/snipc/ipca/tabelas</a>.</li>
+</ul>
+<p><strong>Variáveis explicativas (quantitativas):</strong></p>
+<ul>
+<li><p><strong>DLGG (Dívida Líquida do Governo Geral):</strong> os dados são de janeiro de 2002 a dezembro de 2025, registrados mensalmente. Dados coletados de <a href="https://dadosabertos.bcb.gov.br/dataset/4536-divida-liquida-do-governo-geral--pib">dadosabertos.bcb.gov.br/dataset/4536-divida-liquida-do-governo-geral–pib</a>.</p></li>
+<li><p><strong>Expectativa média de Inflação:</strong> taxa acumulada para os próximos doze meses do dia observado. Os dados são de janeiro de 2002 a dezembro de 2025, registrados mensalmente. Dados coletados de <a href="https://www.ipeadata.gov.br/Default.aspx">ipeadata.gov.br/Default.aspx</a>.</p></li>
+<li><p><strong>Dólar (Moeda Americana):</strong> os dados são de janeiro de 2000 a dezembro de 2025, registrados mensalmente. Dados coletados de <a href="https://www.aasp.org.br/produtos-servicos/indices-economicos/mensal/">aasp.org.br/produtos-servicos/indices-economicos/mensal/</a>.</p></li>
+<li><p><strong>PIB (Produto Interno Bruto):</strong> soma os bens e serviços produzidos pelo país. Os dados são de janeiro de 2000 a dezembro de 2025, registrados mensalmente. Dados coletados de <a href="https://www.ipeadata.gov.br/ExibeSerie.aspx?serid=521274780&amp;module=M">ipeadata.gov.br/ExibeSerie.aspx?serid=521274780&amp;module=M</a>.</p></li>
+<li><p><strong>SELIC (Sistema Especial de Liquidação e de Custódia):</strong> taxa básica de juros brasileira. Os dados são de janeiro de 2000 a dezembro de 2025, registrados mensalmente. Dados coletados de <a href="https://www.aasp.org.br/produtos-servicos/indices-economicos/mensal/">aasp.org.br/produtos-servicos/indices-economicos/mensal/</a>.</p></li>
+</ul>
+<p><strong>Variáveis explicativas (qualitativas):</strong></p>
+<ul>
+<li><p><strong>Eleição:</strong> 1 se é ano de eleição (2002, 2006, 2010, 2014, 2018, 2022), 0 se não é ano de eleição. Os dados são de janeiro de 2000 a dezembro de 2025, registrados mensalmente.</p></li>
+<li><p><strong>Pandemia:</strong> 1 se a data é durante a pandemia (março de 2020 a dezembro de 2021), 0 se não é durante a pandemia. Os dados são de janeiro de 2000 a dezembro de 2025, registrados mensalmente.</p></li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(dados)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 9
+  mes         ipca  dlgg dolar expectativa_ipca     pib selic eleicao pandemia
+  &lt;date&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;            &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt;   &lt;fct&gt;   
+1 2002-01-01  0.52  50.4  2.37             4.76 112375.  1.53 1       0       
+2 2002-02-01  0.36  49.6  2.44             4.7  111477.  1.25 1       0       
+3 2002-03-01  0.6   49    2.35             4.94 118445.  1.37 1       0       
+4 2002-04-01  0.8   49.1  2.32             4.9  120386.  1.48 1       0       
+5 2002-05-01  0.21  50.3  2.51             4.37 123552.  1.41 1       0       
+6 2002-06-01  0.42  52.5  2.72             4.57 123424.  1.33 1       0       </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span>(dados)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 9
+  mes         ipca  dlgg dolar expectativa_ipca      pib selic eleicao pandemia
+  &lt;date&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;            &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt;   &lt;fct&gt;   
+1 2025-07-01  0.26  65.2  5.57             4.52 1095262   1.28 0       0       
+2 2025-08-01 -0.11  65.6  5.56             4.2  1066137.  1.16 0       0       
+3 2025-09-01  0.48  65.9  5.39             4.47 1074309.  1.22 0       0       
+4 2025-10-01  0.09  66.1  5.32             3.97 1103439.  1.28 0       0       
+5 2025-11-01  0.18  66.5  5.45             4.06 1083392.  1.05 0       0       
+6 2025-12-01  0.33  66.8  5.30             3.97 1085969.  1.22 0       0       </code></pre>
+</div>
+</div>
+</section>
+<section id="análise-exploratória" class="level1">
+<h1>Análise exploratória</h1>
+<p>Apresenta-se um resumo dos dados e uma investigação de padrões, relações e hipóteses.</p>
+<section id="visão-geral" class="level2">
+<h2 class="anchored" data-anchor-id="visão-geral">Visão geral</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">skim</span>(dados) <span class="sc">|&gt;</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="at">width =</span> <span class="cn">Inf</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>── Data Summary ────────────────────────
+                           Values
+Name                       dados 
+Number of rows             288   
+Number of columns          9     
+_______________________          
+Column type frequency:           
+  Date                     1     
+  factor                   2     
+  numeric                  6     
+________________________         
+Group variables            None  
+
+── Variable type: Date ─────────────────────────────────────────────────────────
+  skim_variable n_missing complete_rate min        max        median    
+1 mes                   0             1 2002-01-01 2025-12-01 2013-12-16
+  n_unique
+1      288
+
+── Variable type: factor ───────────────────────────────────────────────────────
+  skim_variable n_missing complete_rate ordered n_unique top_counts   
+1 eleicao               0             1 FALSE          2 0: 216, 1: 72
+2 pandemia              0             1 FALSE          2 0: 266, 1: 22
+
+── Variable type: numeric ──────────────────────────────────────────────────────
+  skim_variable    n_missing complete_rate       mean         sd        p0
+1 ipca                     0             1      0.491      0.394     -0.68
+2 dlgg                     0             1     48.0       10.3       30.7 
+3 dolar                    0             1      3.26       1.33       1.57
+4 expectativa_ipca         0             1      5.08       1.38       2.5 
+5 pib                      0             1 480891.    271400.    111477.  
+6 selic                    0             1      0.928      0.367      0.13
+        p25        p50        p75       p100 hist 
+1      0.25      0.44       0.655       3.02 ▁▇▂▁▁
+2     39.0      48.4       56.8        66.8  ▆▆▆▇▅
+3      2.14      2.97       4.17        6.04 ▇▅▃▂▃
+4      4.1       4.86       5.70       13.2  ▆▇▁▁▁
+5 241218.   464147.    621420.    1103439.   ▇▆▅▂▂
+6      0.71      0.925      1.12        2.08 ▃▇▇▂▁</code></pre>
+</div>
+</div>
+<p>O conjunto de dados possui 8 variáveis com 288 observações: de janeiro de 2002 a dezembro de 2025 (24 * 12 = 288). Observa-se que não há dados ausentes, o que é ótimo, pois não será necessário fazer uma imputação, que poderia distorcer a análise.</p>
+<blockquote class="blockquote">
+<p><em>OBS: Variáveis como taxa de desemprego, dívida bruta do governo geral, commodities, exportações, importações e consumo não foram utilizadas devido à dificuldade de encontrar banco de dados com observações suficientes ou na frequência mensal. Já as outras taxas de inflação (IGP, IPA, IPC e INCC) não foram utilizadas porque medem a inflação a partir de outros focos, o que pode atrapalhar a análise.</em></p>
+</blockquote>
+<ul>
+<li><p>A <strong>variação do IPCA</strong> média é de 0,49, com desvio padrão de 0,39, o que implica numa altíssima dispersão (<em>CV</em> = 0,80). Outra observação é que o intervalo entre <em>p75</em> e <em>p100</em> é bem maior do que o intervalo dos outros quartis, logo há uma forte assimetria à direita, o que indica presença de outliers.</p></li>
+<li><p>A <strong>variação do DLGG</strong> possui média de 48,02, desvio padrão de 10,29 e possui média dispersão (<em>CV</em> = 0,21). Observa-se que os patamares do histograma possuem quase o mesmo tamanho, o que sugere uma distribuição uniforme.</p></li>
+<li><p>O <strong>preço do dólar</strong> possui média 3,26 e desvio padrão 1,33, com <em>CV</em> = 0,41, o que indica alta dispersão.</p></li>
+<li><p>A <strong>expectativa do IPCA</strong> possui média 5,08, desvio padrão 1,38 e <em>CV</em> = 0,27, o que indica média dispersão. Diante do histograma de do intervalo entre <em>p75</em> e <em>p100</em> em comparação com o intervalo entre os outros quartis, percebe-se que há uma forte assimetria à direita, assim como a <strong>variação do IPCA</strong>.</p></li>
+<li><p>O <strong>PIB mensal</strong> possui média de 480891,12 e desvio padrão de 271400,35, com alta dispersão, visto que <em>CV</em> = 0,56. Observa-se que há semelhança no histograma da variável <strong>dolar</strong> e <strong>PIB</strong>, o que indica possível correlação.</p></li>
+<li><p>A <strong>taxa selic</strong> possui média 0,93, desvio padrão de 0,37 e <em>CV</em> = 0,40, o que indica alta dispersão. Percebe-se que o histograma apresenta um formato quase simétrico.</p></li>
+</ul>
+<p>No geral, as variáveis possuem média ou alta dispersão, com muitas delas com forte assimetria à direita, o que pode significar que há dados relativamente próximos a mediana, porém também com muitos casos pontuais em que há grandes variações devido ao contexto geopolítico.</p>
+</section>
+<section id="correlação" class="level2">
+<h2 class="anchored" data-anchor-id="correlação">Correlação</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="script_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Destaca-se a correlação entre as variáveis:</p>
+<ul>
+<li><p><strong>ipca</strong> e <strong>expectativa_ipca</strong> (66%);</p></li>
+<li><p><strong>dlgg</strong> com <strong>dolar</strong> (82%) e <strong>pib</strong> (53%);</p></li>
+<li><p><strong>dolar</strong> e <strong>pib</strong> (83%);</p></li>
+<li><p><strong>expectativa_ipca</strong> e <strong>selic</strong> (54%).</p></li>
+</ul>
+<p>Como todas são variáveis econômicas, já era esperado que houvesse algumas correlações, porém, as mais fortes são a do preço do dólar com a dívida líquida do governo geral e com o PIB. O que indica uma certa dependência do Brasil da moeda americana.</p>
+</section>
+<section id="evolução-temporal" class="level2">
+<h2 class="anchored" data-anchor-id="evolução-temporal">Evolução temporal</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="script_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Observa-se que há algumas semelhanças históricas entre as varíaveis ipca, expectativa_ipca e selic. As variáveis dlgg e dolar também parecem ter semelhanças históricas.</p>
+</section>
+<section id="efeitos-da-pandemia" class="level2">
+<h2 class="anchored" data-anchor-id="efeitos-da-pandemia">Efeitos da pandemia</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="script_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Durante a pandemia, a variação do IPCA teve uma dispersão maior do que nos anos sem pandemia. Já a espectativa do IPCA teve uma variação equivalente, porém com uma mediana menor.</p>
+<p>O preço do dólar foi maior durante a pandemia, mas não detectou-se casualidade, dado que durante o período de janeiro de 2020 a dezembro de 2021, intervalo de 2 anos, o dólar já é mais alto do que os 18 anos anteriores. O mesmo vale para a DLGG e PIB.</p>
+<p>A tendência central da SELIC durante a pandemia é inferior. Possivelmente a redução da SELIC foi uma estratégia para estimular a atividade econômica do país (juros baixos estimula a compra parcelada).</p>
+</section>
+<section id="efeitos-dos-anos-de-eleição" class="level2">
+<h2 class="anchored" data-anchor-id="efeitos-dos-anos-de-eleição">Efeitos dos anos de eleição</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="script_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>A variação do IPCA é minimamente maior em anos de eleição. Já a média e mediana parecem não mudar.</p>
+<p>O preço do dólar possui menor dispersão e uma mediana menor em anos de eleição, mas não há evidências de que haja casualidade.</p>
+<p>Não foi detectado efeitos da eleição nas outras variáveis.</p>
+</section>
+</section>
+<section id="modelo-proposto" class="level1">
+<h1>Modelo proposto</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>mod_completo <span class="ot">&lt;-</span> <span class="fu">lm</span>(ipca <span class="sc">~</span> ., dados[, <span class="sc">-</span><span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod_completo)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = ipca ~ ., data = dados[, -1])
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.02072 -0.15518  0.01025  0.17555  0.83695 
+
+Coefficients:
+                   Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)      -8.604e-01  1.490e-01  -5.777 2.02e-08 ***
+dlgg              1.215e-02  3.598e-03   3.376 0.000838 ***
+dolar            -1.795e-02  4.544e-02  -0.395 0.693176    
+expectativa_ipca  2.576e-01  1.625e-02  15.850  &lt; 2e-16 ***
+pib              -2.103e-07  1.583e-07  -1.328 0.185119    
+selic            -4.068e-01  7.166e-02  -5.676 3.44e-08 ***
+eleicao1         -2.125e-02  3.715e-02  -0.572 0.567707    
+pandemia1         2.416e-02  9.211e-02   0.262 0.793256    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.2657 on 280 degrees of freedom
+Multiple R-squared:  0.5566,    Adjusted R-squared:  0.5455 
+F-statistic: 50.21 on 7 and 280 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<p>Algumas variáveis não contribuem significativamente para explicar o IPCA, logo, será feito uma seleção de variáveis para tentar melhorar o modelo.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vif</span>(mod_completo)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            dlgg            dolar expectativa_ipca              pib 
+        5.576330        14.872332         2.034143         7.506637 
+           selic          eleicao         pandemia 
+        2.816342         1.055831         2.442420 </code></pre>
+</div>
+</div>
+<p>A variável dolar, além de não ser significativa, é multicolinear, dado que seu VIF &gt; 10. Opta-se então por removê-la do modelo.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>dados_modelo <span class="ot">&lt;-</span> dados <span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>dolar)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(ipca <span class="sc">~</span> ., dados_modelo[, <span class="sc">-</span><span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Agora, será feito uma seleção de variáveis para tornar o modelo mais parcimonioso, ou seja, ter o mínimo de variáveis que expliquem bem o comportamento da variável resposta. Será utilizado o método de stepwise.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">step</span>(mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Start:  AIC=-757.43
+ipca ~ dlgg + expectativa_ipca + pib + selic + eleicao + pandemia
+
+                   Df Sum of Sq    RSS     AIC
+- pandemia          1    0.0008 19.775 -759.41
+- eleicao           1    0.0239 19.799 -759.08
+&lt;none&gt;                          19.775 -757.43
+- pib               1    0.7517 20.526 -748.68
+- dlgg              1    1.6401 21.415 -736.48
+- selic             1    2.3723 22.147 -726.79
+- expectativa_ipca  1   21.5430 41.318 -547.20
+
+Step:  AIC=-759.41
+ipca ~ dlgg + expectativa_ipca + pib + selic + eleicao
+
+                   Df Sum of Sq    RSS     AIC
+- eleicao           1    0.0266 19.802 -761.03
+&lt;none&gt;                          19.775 -759.41
+- pib               1    0.8556 20.631 -749.22
+- dlgg              1    2.4416 22.217 -727.89
+- selic             1    3.9184 23.694 -709.35
+- expectativa_ipca  1   23.3272 43.103 -537.02
+
+Step:  AIC=-761.03
+ipca ~ dlgg + expectativa_ipca + pib + selic
+
+                   Df Sum of Sq    RSS     AIC
+&lt;none&gt;                          19.802 -761.03
+- pib               1    0.8364 20.638 -751.11
+- dlgg              1    2.4395 22.242 -729.57
+- selic             1    3.9135 23.715 -711.09
+- expectativa_ipca  1   23.3012 43.103 -539.02</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = ipca ~ dlgg + expectativa_ipca + pib + selic, data = dados_modelo[, 
+    -1])
+
+Coefficients:
+     (Intercept)              dlgg  expectativa_ipca               pib  
+      -8.290e-01         1.118e-02         2.548e-01        -2.628e-07  
+           selic  
+      -4.153e-01  </code></pre>
+</div>
+</div>
+<p>Manteve-se as variáveis explicativas dlgg, expectativa_ipca, pib e selic, logo, serão removidas as variáveis pandemia e eleição por não contribuirem significativamente na explicação da variável resposta.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>dados_modelo <span class="ot">&lt;-</span> dados_modelo <span class="sc">%&gt;%</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>pandemia, <span class="sc">-</span>eleicao)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(ipca <span class="sc">~</span> ., dados_modelo[, <span class="sc">-</span><span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = ipca ~ ., data = dados_modelo[, -1])
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.04288 -0.15778  0.00639  0.17480  0.81598 
+
+Coefficients:
+                   Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)      -8.290e-01  1.078e-01  -7.689 2.47e-13 ***
+dlgg              1.118e-02  1.894e-03   5.905 1.01e-08 ***
+expectativa_ipca  2.548e-01  1.397e-02  18.249  &lt; 2e-16 ***
+pib              -2.629e-07  7.603e-08  -3.457 0.000629 ***
+selic            -4.153e-01  5.553e-02  -7.479 9.48e-13 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.2645 on 283 degrees of freedom
+Multiple R-squared:  0.5557,    Adjusted R-squared:  0.5494 
+F-statistic: 88.49 on 4 and 283 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<p>Obteve-se então a seguinte proposta de modelo:</p>
+<p><span class="math display">\[
+Y = -0{,}8290
++ 0{,}0112 X_1
++ 0{,}2548 X_2
+- 2{,}629 \times 10^{-7} X_3
+- 0{,}4153 X_4
+\]</span></p>
+<p>Com <span class="math inline">\(X_1\)</span> = dlgg, <span class="math inline">\(X_2\)</span> = expectativa_ipca, <span class="math inline">\(X_3\)</span> = pib e <span class="math inline">\(X_4\)</span> = selic e <span class="math inline">\(R^2 = 0,56\)</span> e <span class="math inline">\(R_{adj}^2 = 0,55\)</span>.</p>
+<section id="análise-do-ajuste-do-modelo" class="level2">
+<h2 class="anchored" data-anchor-id="análise-do-ajuste-do-modelo">Análise do ajuste do modelo</h2>
+<p>Será feito uma análise de resíduos e análise de pontos influentes para verificar se o modelo realmente descreve bem os dados e visualizar possíveis distorções.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>residuos <span class="ot">&lt;-</span> <span class="fu">residuals</span>(mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">shapiro.test</span>(residuos)<span class="sc">$</span>p.value</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.0016734</code></pre>
+</div>
+</div>
+<p>Ao aplicar o teste de Shapiro Wilks, obteve-se ou p-valor &lt; 0,05, logo, há evidências de que os resíduos são normais.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="script_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Diante do gráfico <em>Q-Q Plot</em>, verifica-se que os resíduos são aproximadamente normais, dado que os valores que estão sobre a reta, porém as caudas são mais pesadas, visto que na esquerda os pontos estão abaixo da reta e na direita estão acima da reta.</p>
+<p>No gráfico que compara Resíduos e Valores Ajustados, os dados estão espalhados em torno do zero sem um padrão, logo a variância é constante.</p>
+<p>O gráfico que compara Ordem e Resíduos mostra que os dados são indepedentes, visto que não há um padrão no comportamento das amostras.</p>
+<p>Há evidências de que as pressuposições do modelo estão satisfeitas.</p>
+</section>
+<section id="outliers" class="level2">
+<h2 class="anchored" data-anchor-id="outliers">Outliers</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="script_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Não há valores acima do critério conservador, logo considera-se que não há valores discrepantes.</p>
+</section>
+</section>
+<section id="conclusão" class="level1">
+<h1>Conclusão</h1>
+<p>Podemos concluir após a análise, a manipulação e o ajuste do modelo de regressão dos dados que eventos de caráter qualitativo não afetam de maneira significativa os modelos. Primeiramente por ocorrer por um período muito curto, e segundo por ter a variação de outros índices que alteram seus valores. Já as variáveis quantitativas em sua maioria explicam de maneira mais precisa os valores do IPCA. Tendo obtido o R² podemos disser que 55% da variação da variável resposta pode ser explicada pelo nosso modelo, o que é um resultado satisfatório.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

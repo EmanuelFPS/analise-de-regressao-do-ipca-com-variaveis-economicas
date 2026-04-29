@@ -1,0 +1,421 @@
+---
+title: "Relatório de análise do IPCA a partir de outras variáveis econômicas"
+author: Emanuel Simões e Pedro Noleto
+format: pdf
+editor: visual
+---
+
+```{r, include = FALSE}
+rm(list=ls())
+Sys.setlocale("LC_TIME", "pt_BR.UTF-8")
+```
+
+```{r, include = FALSE}
+## Instalação e importação de pacotes ---------------------------------------
+
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman")
+}
+
+pacman::p_load(car, corrplot, patchwork, skimr, tidyverse)
+```
+
+# Introdução
+
+Neste trabalho iremos através de diversos bancos de dados, analisar 288 observações referente a cada mês de 2002 a 2025. Referentes aos dados que mais afetam a variável resposta o IPCA (Índice nacional de preços ao consumidor). Para chegar as variáveis respostas, pensamos em diversas variáveis como o IGP (Índice geral de preços), IPA (Índice de preço no atacado), IPC (Índice de preço ao consumidor) e INCC (Índice nacional de custo da construção), por fim estes índices não foram utilizados por que medem a inflação por meio de outros parâmetros que poderiam afetar e atrapalhar a análise. Para que a manipulação dos dados fossem o mais natural o possível focamos em variáveis explicativas tanto quantitativas quanto qualitativas. Sendo as variáveis quantitativas aquelas que podem ser observadas por todo o período de tempo, referente ao total de observações, portanto de 2002 a 2025. Já as variáveis qualitativas são eventos que aconteceram e acontecem em momentos específicos, neste caso as eleições e a pandemia. Para determinar se o evento e quantitativo ou qualitativo, optamos por utilizar 1 para o período que ocorre determinados eventos e 0 para períodos que não ocorrem.
+
+# Introdução aos dados
+
+Esta seção apresenta uma breve explicação, o período e a fonte de cada variável utilizada para as análises.
+
+**Variável resposta:**
+
+-   **IPCA (Índice Nacional de Preços ao Consumidor Amplo):** mede a inflação oficial do Brasil a partir da variação de preços ao consumidor. Os dados são a variação percentual mensal do IPCA, de janeiro de 1980 a dezembro de 2025. Dados coletados de [sidra.ibge.gov.br/pesquisa/snipc/ipca/tabelas](https://sidra.ibge.gov.br/pesquisa/snipc/ipca/tabelas).
+
+**Variáveis explicativas (quantitativas):**
+
+-   **DLGG (Dívida Líquida do Governo Geral):** os dados são de janeiro de 2002 a dezembro de 2025, registrados mensalmente. Dados coletados de [dadosabertos.bcb.gov.br/dataset/4536-divida-liquida-do-governo-geral--pib](https://dadosabertos.bcb.gov.br/dataset/4536-divida-liquida-do-governo-geral--pib).
+
+-   **Expectativa média de Inflação:** taxa acumulada para os próximos doze meses do dia observado. Os dados são de janeiro de 2002 a dezembro de 2025, registrados mensalmente. Dados coletados de [ipeadata.gov.br/Default.aspx](https://www.ipeadata.gov.br/Default.aspx).
+
+-   **Dólar (Moeda Americana):** os dados são de janeiro de 2000 a dezembro de 2025, registrados mensalmente. Dados coletados de [aasp.org.br/produtos-servicos/indices-economicos/mensal/](https://www.aasp.org.br/produtos-servicos/indices-economicos/mensal/).
+
+-   **PIB (Produto Interno Bruto):** soma os bens e serviços produzidos pelo país. Os dados são de janeiro de 2000 a dezembro de 2025, registrados mensalmente. Dados coletados de [ipeadata.gov.br/ExibeSerie.aspx?serid=521274780&module=M](https://www.ipeadata.gov.br/ExibeSerie.aspx?serid=521274780&module=M).
+
+-   **SELIC (Sistema Especial de Liquidação e de Custódia):** taxa básica de juros brasileira. Os dados são de janeiro de 2000 a dezembro de 2025, registrados mensalmente. Dados coletados de [aasp.org.br/produtos-servicos/indices-economicos/mensal/](https://www.aasp.org.br/produtos-servicos/indices-economicos/mensal/).
+
+**Variáveis explicativas (qualitativas):**
+
+-   **Eleição:** 1 se é ano de eleição (2002, 2006, 2010, 2014, 2018, 2022), 0 se não é ano de eleição. Os dados são de janeiro de 2000 a dezembro de 2025, registrados mensalmente.
+
+-   **Pandemia:** 1 se a data é durante a pandemia (março de 2020 a dezembro de 2021), 0 se não é durante a pandemia. Os dados são de janeiro de 2000 a dezembro de 2025, registrados mensalmente.
+
+```{r, include = FALSE}
+## Importação e transformação dos dados -------------------------------------
+
+### IPCA --------------------------------------------------------------------
+ipca <- read.csv2('tabelas/ipca_mensal_1980a2025_com_categorias.csv',
+                  header = TRUE,
+                  skip = 2,
+                  nrows = 553)
+ipca <- ipca[-1,c(1,3)]
+colnames(ipca) <- c("mes", 'ipca')
+ipca <- ipca[-c(1:240), ]
+ipca$ipca <- as.numeric(gsub(',', '.', ipca$ipca))
+
+ipca$mes <- as.Date(
+  paste("01", ipca$mes),
+  format = "%d %B %Y"
+)
+
+### DLGG --------------------------------------------------------------------
+dlgg <- read.csv2('tabelas/bcdata.sgs.4536.csv',
+                  header = TRUE)
+dlgg <- dlgg[,2]
+
+### DOLAR -------------------------------------------------------------------
+dolar <- scan('tabelas/dolar.txt', sep = ',')
+
+### EXPECTATIVA DO IPCA -----------------------------------------------------
+expectativa_ipca <- read.csv2('tabelas/expectativa_ipca.csv',
+                              header = TRUE)
+expectativa_ipca <- expectativa_ipca[,2]
+
+### PIB ---------------------------------------------------------------------
+pib <- read.csv2('tabelas/STP-20260206161420809.csv',
+                 header = TRUE)
+pib <- pib[,2]
+pib <- as.numeric(sub(",", ".", gsub("\\.", "", pib)))
+
+### SELIC -------------------------------------------------------------------
+selic <- scan('tabelas/selic.txt', sep = ',')
+
+### ELEICAO -----------------------------------------------------------------
+eleicao <- as.factor(scan('tabelas/eleicao.txt', sep = ','))
+
+### PANDEMIA ----------------------------------------------------------------
+pandemia <- as.factor(scan('tabelas/pandemia.txt', sep = ','))
+
+```
+
+```{r, include = FALSE}
+## União dos dados ----------------------------------------------------------
+ipca <- ipca[-c(1:24),]
+dolar <- dolar[-c(1:24)]
+pib <- pib[-c(1:24)]
+selic <- selic[-c(1:24)]
+eleicao <- eleicao[-c(1:24)]
+pandemia <- pandemia[-c(1:24)]
+
+dados <- tibble(ipca, dlgg, dolar, expectativa_ipca, 
+                pib, selic, eleicao, pandemia)
+```
+
+```{r}
+head(dados)
+tail(dados)
+```
+
+# Análise exploratória
+
+Apresenta-se um resumo dos dados e uma investigação de padrões, relações e hipóteses.
+
+## Visão geral
+
+```{r}
+skim(dados)
+```
+
+O conjunto de dados possui 8 variáveis com 288 observações: de janeiro de 2002 a dezembro de 2025 (24 \* 12 = 288). Observa-se que não há dados ausentes, o que é ótimo, pois não será necessário fazer uma imputação, que poderia distorcer a análise.
+
+> *OBS: Variáveis como taxa de desemprego, dívida bruta do governo geral, commodities, exportações, importações e consumo não foram utilizadas devido à dificuldade de encontrar banco de dados com observações suficientes ou na frequência mensal. Já as outras taxas de inflação (IGP, IPA, IPC e INCC) não foram utilizadas porque medem a inflação a partir de outros focos, o que pode atrapalhar a análise.*
+
+-   A **variação do IPCA** média é de 0,49, com desvio padrão de 0,39, o que implica numa altíssima dispersão (*CV* = 0,80). Outra observação é que o intervalo entre *p75* e *p100* é bem maior do que o intervalo dos outros quartis, logo há uma forte assimetria à direita, o que indica presença de outliers.
+
+-   A **variação do DLGG** possui média de 48,02, desvio padrão de 10,29 e possui média dispersão (*CV* = 0,21). Observa-se que os patamares do histograma possuem quase o mesmo tamanho, o que sugere uma distribuição uniforme.
+
+-   O **preço do dólar** possui média 3,26 e desvio padrão 1,33, com *CV* = 0,41, o que indica alta dispersão.
+
+-   A **expectativa do IPCA** possui média 5,08, desvio padrão 1,38 e *CV* = 0,27, o que indica média dispersão. Diante do histograma de do intervalo entre *p75* e *p100* em comparação com o intervalo entre os outros quartis, percebe-se que há uma forte assimetria à direita, assim como a **variação do IPCA**.
+
+-   O **PIB mensal** possui média de 480891,12 e desvio padrão de 271400,35, com alta dispersão, visto que *CV* = 0,56. Observa-se que há semelhança no histograma da variável **dolar** e **PIB**, o que indica possível correlação.
+
+-   A **taxa selic** possui média 0,93, desvio padrão de 0,37 e *CV* = 0,40, o que indica alta dispersão. Percebe-se que o histograma apresenta um formato quase simétrico.
+
+No geral, as variáveis possuem média ou alta dispersão, com muitas delas com forte assimetria à direita, o que pode significar que há dados relativamente próximos a mediana, porém também com muitos casos pontuais em que há grandes variações devido ao contexto geopolítico.
+
+## Correlação
+
+```{r, echo = FALSE}
+cor_mat <- dados %>%
+  select(-mes, -eleicao, -pandemia) %>%
+  cor()
+
+corrplot(
+  cor_mat,
+  method = "color",
+  type = "upper",
+  addCoef.col = "black",
+  tl.col = "black",
+  tl.srt = 45
+)
+```
+
+Destaca-se a correlação entre as variáveis:
+
+-   **ipca** e **expectativa_ipca** (66%);
+
+-   **dlgg** com **dolar** (82%) e **pib** (53%);
+
+-   **dolar** e **pib** (83%);
+
+-   **expectativa_ipca** e **selic** (54%).
+
+Como todas são variáveis econômicas, já era esperado que houvesse algumas correlações, porém, as mais fortes são a do preço do dólar com a dívida líquida do governo geral e com o PIB. O que indica uma certa dependência do Brasil da moeda americana.
+
+## Evolução temporal
+
+```{r, include = FALSE}
+## Gráficos -----------------------------------------------------------------
+gline_mes_ipca <- ggplot(
+  dados, aes(x = mes, y = ipca)) +
+  geom_line() +
+  theme_minimal()
+
+gline_mes_dlgg <- ggplot(
+  dados, aes(x = mes, y = dlgg)) +
+  geom_line() +
+  theme_minimal()
+
+gline_mes_expectativa <- ggplot(
+  dados, aes(x = mes, y = expectativa_ipca)) +
+  geom_line() +
+  theme_minimal()
+
+gline_mes_dolar <- ggplot(
+  dados, aes(x = mes, y = dolar)) +
+  geom_line() +
+  theme_minimal()
+
+gline_mes_pib <- ggplot(
+  dados, aes(x = mes, y = pib)) +
+  geom_line() +
+  theme_minimal()
+
+gline_mes_selic <- ggplot(
+  dados, aes(x = mes, y = selic)) +
+  geom_line() +
+  theme_minimal()
+```
+
+```{r, echo = FALSE}
+(gline_mes_ipca | gline_mes_expectativa) / 
+  (gline_mes_dlgg | gline_mes_dolar) / 
+  (gline_mes_pib | gline_mes_selic)
+```
+
+Observa-se que há algumas semelhanças históricas entre as varíaveis ipca, expectativa_ipca e selic. As variáveis dlgg e dolar também parecem ter semelhanças históricas.
+
+## Efeitos da pandemia
+
+```{r, include = FALSE}
+## Boxplots -----------------------------------------------------------------
+gboxplot_pandemia_ipca <- ggplot(
+  dados, aes(x = pandemia, y = ipca, fill = pandemia)) +
+  geom_boxplot() +
+  theme_minimal()
+
+gboxplot_eleicao_ipca <- ggplot(
+  dados, aes(x = eleicao, y = ipca, fill = eleicao)) +
+  geom_boxplot() +
+  theme_minimal()
+
+gboxplot_pandemia_dlgg <- ggplot(
+  dados, aes(x = pandemia, y = dlgg, fill = pandemia)) +
+  geom_boxplot() +
+  theme_minimal()
+
+gboxplot_eleicao_dlgg <- ggplot(
+  dados, aes(x = eleicao, y = dlgg, fill = eleicao)) +
+  geom_boxplot() +
+  theme_minimal()
+
+gboxplot_pandemia_dolar <- ggplot(
+  dados, aes(x = pandemia, y = dolar, fill = pandemia)) +
+  geom_boxplot() +
+  theme_minimal()
+
+gboxplot_eleicao_dolar <- ggplot(
+  dados, aes(x = eleicao, y = dolar, fill = eleicao)) +
+  geom_boxplot() +
+  theme_minimal()
+
+gboxplot_pandemia_expectativa <- ggplot(
+  dados, aes(x = pandemia, y = expectativa_ipca, fill = pandemia)) +
+  geom_boxplot() +
+  theme_minimal()
+
+gboxplot_eleicao_expectativa <- ggplot(
+  dados, aes(x = eleicao, y = expectativa_ipca, fill = eleicao)) +
+  geom_boxplot() +
+  theme_minimal()
+
+gboxplot_pandemia_pib <- ggplot(
+  dados, aes(x = pandemia, y = pib, fill = pandemia)) +
+  geom_boxplot() +
+  theme_minimal()
+
+gboxplot_eleicao_pib <- ggplot(
+  dados, aes(x = eleicao, y = pib, fill = eleicao)) +
+  geom_boxplot() +
+  theme_minimal()
+
+gboxplot_pandemia_selic <- ggplot(
+  dados, aes(x = pandemia, y = selic, fill = pandemia)) +
+  geom_boxplot() +
+  theme_minimal()
+
+gboxplot_eleicao_selic <- ggplot(
+  dados, aes(x = eleicao, y = selic, fill = eleicao)) +
+  geom_boxplot() +
+  theme_minimal()
+```
+
+```{r, echo = FALSE}
+(gboxplot_pandemia_ipca | gboxplot_pandemia_expectativa) / 
+  (gboxplot_pandemia_dolar | gboxplot_pandemia_dlgg) / 
+  (gboxplot_pandemia_pib | gboxplot_pandemia_selic)
+```
+
+Durante a pandemia, a variação do IPCA teve uma dispersão maior do que nos anos sem pandemia. Já a espectativa do IPCA teve uma variação equivalente, porém com uma mediana menor.
+
+O preço do dólar foi maior durante a pandemia, mas não detectou-se casualidade, dado que durante o período de janeiro de 2020 a dezembro de 2021, intervalo de 2 anos, o dólar já é mais alto do que os 18 anos anteriores. O mesmo vale para a DLGG e PIB.
+
+A tendência central da SELIC durante a pandemia é inferior. Possivelmente a redução da SELIC foi uma estratégia para estimular a atividade econômica do país (juros baixos estimula a compra parcelada).
+
+## Efeitos dos anos de eleição
+
+```{r, echo = FALSE}
+(gboxplot_eleicao_ipca | gboxplot_eleicao_expectativa) / 
+  (gboxplot_eleicao_dolar | gboxplot_eleicao_dlgg) / 
+  (gboxplot_eleicao_pib | gboxplot_eleicao_selic)
+```
+
+A variação do IPCA é minimamente maior em anos de eleição. Já a média e mediana parecem não mudar.
+
+O preço do dólar possui menor dispersão e uma mediana menor em anos de eleição, mas não há evidências de que haja casualidade.
+
+Não foi detectado efeitos da eleição nas outras variáveis.
+
+# Modelo proposto
+
+```{r}
+mod_completo <- lm(ipca ~ ., dados[, -1])
+```
+
+```{r}
+summary(mod_completo)
+```
+
+Algumas variáveis não contribuem significativamente para explicar o IPCA, logo, será feito uma seleção de variáveis para tentar melhorar o modelo.
+
+```{r}
+vif(mod_completo)
+```
+
+A variável dolar, além de não ser significativa, é multicolinear, dado que seu VIF \> 10. Opta-se então por removê-la do modelo.
+
+```{r}
+dados_modelo <- dados %>%
+  select(-dolar)
+
+mod <- lm(ipca ~ ., dados_modelo[, -1])
+```
+
+Agora, será feito uma seleção de variáveis para tornar o modelo mais parcimonioso, ou seja, ter o mínimo de variáveis que expliquem bem o comportamento da variável resposta. Será utilizado o método de stepwise.
+
+```{r}
+step(mod)
+```
+
+Manteve-se as variáveis explicativas dlgg, expectativa_ipca, pib e selic, logo, serão removidas as variáveis pandemia e eleição por não contribuirem significativamente na explicação da variável resposta.
+
+```{r}
+dados_modelo <- dados_modelo %>%
+  select(-pandemia, -eleicao)
+
+mod <- lm(ipca ~ ., dados_modelo[, -1])
+```
+
+```{r}
+summary(mod)
+```
+
+Obteve-se então a seguinte proposta de modelo:
+
+$$
+Y = -0{,}8290 
++ 0{,}0112 X_1 
++ 0{,}2548 X_2 
+- 2{,}629 \times 10^{-7} X_3 
+- 0{,}4153 X_4
+$$
+
+Com $X_1$ = dlgg, $X_2$ = expectativa_ipca, $X_3$ = pib e $X_4$ = selic e $R^2 = 0,56$ e $R_{adj}^2 = 0,55$.
+
+## Análise do ajuste do modelo
+
+Será feito uma análise de resíduos e análise de pontos influentes para verificar se o modelo realmente descreve bem os dados e visualizar possíveis distorções.
+
+```{r}
+residuos <- residuals(mod)
+```
+
+```{r}
+shapiro.test(residuos)$p.value
+```
+
+Ao aplicar o teste de Shapiro Wilks, obteve-se ou p-valor \< 0,05, logo, há evidências de que os resíduos são normais.
+
+```{r, echo = FALSE}
+par(mfrow = c(1, 3))
+
+qqnorm(residuos, xlab = 'Quantis Teóricos', 
+       ylab = 'Quantis Empíricos')
+qqline(residuos)
+
+plot(fitted(mod), residuos, ylab = 'Resíduos', 
+     xlab = 'Valores Ajustados')
+abline(h = 0, col = 'Red', lty = 2)
+
+plot(residuos, ylab = 'Resíduos', 
+     xlab = 'Ordem')
+abline(h = 0, col = 'Red', lty = 2)
+```
+
+Diante do gráfico *Q-Q Plot*, verifica-se que os resíduos são aproximadamente normais, dado que os valores que estão sobre a reta, porém as caudas são mais pesadas, visto que na esquerda os pontos estão abaixo da reta e na direita estão acima da reta.
+
+No gráfico que compara Resíduos e Valores Ajustados, os dados estão espalhados em torno do zero sem um padrão, logo a variância é constante.
+
+O gráfico que compara Ordem e Resíduos mostra que os dados são indepedentes, visto que não há um padrão no comportamento das amostras.
+
+Há evidências de que as pressuposições do modelo estão satisfeitas.
+
+## Outliers
+
+```{r, echo = FALSE}
+cooksd <- cooks.distance(mod)
+sample_size <- nrow(dados_modelo)
+
+maximo <- max(cooksd, 1.1)
+plot(cooksd, pch = '*', ylab = 'Distância de Cook',
+	ylim = c(0, maximo))
+abline(h = 1, col = 'orange')
+abline(h = 4/sample_size, col = 'red')
+```
+
+Não há valores acima do critério conservador, logo considera-se que não há valores discrepantes.
+
+# Conclusão
+
+Podemos concluir após a análise, a manipulação e o ajuste do modelo de regressão dos dados que eventos de caráter qualitativo não afetam de maneira significativa os modelos. Primeiramente por ocorrer por um período muito curto, e segundo por ter a variação de outros índices que alteram seus valores. Já as variáveis quantitativas em sua maioria explicam de maneira mais precisa os valores do IPCA. Tendo obtido o R² podemos disser que 55% da variação da variável resposta pode ser explicada pelo nosso modelo, o que é um resultado satisfatório.
